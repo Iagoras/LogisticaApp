@@ -44,12 +44,37 @@ export function FormularioProduto({ acao, valores, rotuloEnvio }: Props) {
   const [estado, enviar] = useActionState(acao, ESTADO_INICIAL);
   const erros = estado.camposComErro;
 
+  /**
+   * Valor de cada campo, em ordem de prioridade:
+   *   1. o que voltou do servidor após um erro (não perde o que foi digitado)
+   *   2. o valor original do produto, ao editar
+   *   3. vazio
+   */
+  const v = (campo: keyof ValoresProduto) =>
+    estado.valores?.[campo] ?? (valores?.[campo] as string | undefined) ?? '';
+
   // Prévia do volume enquanto a pessoa digita as dimensões.
   const [dimensoes, setDimensoes] = useState({
-    altura: valores?.alturaCm ?? '',
-    largura: valores?.larguraCm ?? '',
-    comprimento: valores?.comprimentoCm ?? '',
+    altura: v('alturaCm'),
+    largura: v('larguraCm'),
+    comprimento: v('comprimentoCm'),
   });
+
+  // Após um erro os inputs voltam com os valores do servidor; o estado da
+  // prévia precisa acompanhar, senão o volume mostraria dados antigos.
+  const marcaValores = estado.valores
+    ? `${estado.valores.alturaCm}|${estado.valores.larguraCm}|${estado.valores.comprimentoCm}`
+    : null;
+  const [marcaAplicada, setMarcaAplicada] = useState<string | null>(null);
+
+  if (marcaValores && marcaValores !== marcaAplicada) {
+    setMarcaAplicada(marcaValores);
+    setDimensoes({
+      altura: estado.valores?.alturaCm ?? '',
+      largura: estado.valores?.larguraCm ?? '',
+      comprimento: estado.valores?.comprimentoCm ?? '',
+    });
+  }
 
   const [removerImagem, setRemoverImagem] = useState(false);
 
@@ -85,7 +110,7 @@ export function FormularioProduto({ acao, valores, rotuloEnvio }: Props) {
           nome="nome"
           placeholder="Caixa de papelão reforçada"
           required
-          defaultValue={valores?.nome}
+          defaultValue={v('nome')}
           erros={erros?.nome}
         />
 
@@ -93,7 +118,7 @@ export function FormularioProduto({ acao, valores, rotuloEnvio }: Props) {
           rotulo="Descrição"
           nome="descricao"
           placeholder="Detalhes que ajudem a identificar o item."
-          defaultValue={valores?.descricao}
+          defaultValue={v('descricao')}
           erros={erros?.descricao}
         />
 
@@ -103,7 +128,7 @@ export function FormularioProduto({ acao, valores, rotuloEnvio }: Props) {
             nome="sku"
             placeholder="CX-001"
             dica="Código interno. Precisa ser único no seu estoque."
-            defaultValue={valores?.sku}
+            defaultValue={v('sku')}
             erros={erros?.sku}
           />
           <Campo
@@ -111,7 +136,7 @@ export function FormularioProduto({ acao, valores, rotuloEnvio }: Props) {
             nome="quantidade"
             inputMode="numeric"
             placeholder="0"
-            defaultValue={valores?.quantidade ?? '0'}
+            defaultValue={v('quantidade') || '0'}
             erros={erros?.quantidade}
           />
         </div>
@@ -133,7 +158,7 @@ export function FormularioProduto({ acao, valores, rotuloEnvio }: Props) {
           inputMode="decimal"
           placeholder="1,5"
           required
-          defaultValue={valores?.pesoKg}
+          defaultValue={v('pesoKg')}
           erros={erros?.pesoKg}
         />
 
@@ -144,7 +169,7 @@ export function FormularioProduto({ acao, valores, rotuloEnvio }: Props) {
             inputMode="decimal"
             placeholder="30"
             required
-            defaultValue={valores?.alturaCm}
+            defaultValue={v('alturaCm')}
             erros={erros?.alturaCm}
             onChange={(e) =>
               setDimensoes((d) => ({ ...d, altura: e.target.value }))
@@ -156,7 +181,7 @@ export function FormularioProduto({ acao, valores, rotuloEnvio }: Props) {
             inputMode="decimal"
             placeholder="40"
             required
-            defaultValue={valores?.larguraCm}
+            defaultValue={v('larguraCm')}
             erros={erros?.larguraCm}
             onChange={(e) =>
               setDimensoes((d) => ({ ...d, largura: e.target.value }))
@@ -168,7 +193,7 @@ export function FormularioProduto({ acao, valores, rotuloEnvio }: Props) {
             inputMode="decimal"
             placeholder="50"
             required
-            defaultValue={valores?.comprimentoCm}
+            defaultValue={v('comprimentoCm')}
             erros={erros?.comprimentoCm}
             onChange={(e) =>
               setDimensoes((d) => ({ ...d, comprimento: e.target.value }))

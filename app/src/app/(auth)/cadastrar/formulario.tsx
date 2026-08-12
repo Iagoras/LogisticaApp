@@ -41,6 +41,10 @@ export function FormularioCadastro() {
   const [estado, acao] = useActionState(cadastrarFornecedor, ESTADO_INICIAL);
   const erros = estado.camposComErro;
 
+  // Repõe o que foi digitado quando a validação falha — sem isso, um CNPJ
+  // errado apagaria os outros 14 campos. As senhas não voltam do servidor.
+  const v = (campo: string) => estado.valores?.[campo] ?? '';
+
   return (
     <form action={acao} className="flex flex-col gap-6" noValidate>
       {estado.erro && (
@@ -62,6 +66,7 @@ export function FormularioCadastro() {
           autoComplete="name"
           placeholder="Maria Silva"
           required
+          defaultValue={v('nome')}
           erros={erros?.nome}
         />
         <Campo
@@ -71,8 +76,17 @@ export function FormularioCadastro() {
           autoComplete="email"
           placeholder="voce@empresa.com.br"
           required
+          defaultValue={v('email')}
           erros={erros?.email}
         />
+        {/* As senhas não voltam do servidor por segurança — avisamos, já que
+            os outros campos reaparecem preenchidos e a diferença confunde. */}
+        {estado.valores && (
+          <p className="rounded-lg bg-amber-50 px-3 py-2 text-[13px] text-amber-800">
+            Por segurança, digite a senha novamente.
+          </p>
+        )}
+
         <div className="grid gap-5 md:grid-cols-2">
           <Campo
             rotulo="Senha"
@@ -106,12 +120,14 @@ export function FormularioCadastro() {
           autoComplete="organization"
           placeholder="Transportes Silva Ltda"
           required
+          defaultValue={v('razaoSocial')}
           erros={erros?.razaoSocial}
         />
         <Campo
           rotulo="Nome fantasia"
           nome="nomeFantasia"
           placeholder="Silva Log"
+          defaultValue={v('nomeFantasia')}
           erros={erros?.nomeFantasia}
         />
         <div className="grid gap-5 md:grid-cols-2">
@@ -122,6 +138,7 @@ export function FormularioCadastro() {
             placeholder="00.000.000/0000-00"
             required
             dica="Pode digitar com ou sem pontuação."
+            defaultValue={v('cnpj')}
             erros={erros?.cnpj}
           />
           <Campo
@@ -131,6 +148,7 @@ export function FormularioCadastro() {
             inputMode="numeric"
             autoComplete="tel"
             placeholder="(11) 90000-0000"
+            defaultValue={v('telefone')}
             erros={erros?.telefone}
           />
         </div>
@@ -144,6 +162,7 @@ export function FormularioCadastro() {
             inputMode="numeric"
             placeholder="00000-000"
             required
+            defaultValue={v('cep')}
             erros={erros?.cep}
           />
           <Campo
@@ -152,6 +171,7 @@ export function FormularioCadastro() {
             autoComplete="street-address"
             placeholder="Av. Paulista"
             required
+            defaultValue={v('logradouro')}
             erros={erros?.logradouro}
           />
         </div>
@@ -161,12 +181,14 @@ export function FormularioCadastro() {
             nome="numero"
             placeholder="1000"
             required
+            defaultValue={v('numero')}
             erros={erros?.numero}
           />
           <Campo
             rotulo="Complemento"
             nome="complemento"
             placeholder="Sala 12"
+            defaultValue={v('complemento')}
             erros={erros?.complemento}
           />
         </div>
@@ -176,6 +198,7 @@ export function FormularioCadastro() {
             nome="bairro"
             placeholder="Bela Vista"
             required
+            defaultValue={v('bairro')}
             erros={erros?.bairro}
           />
           <Campo
@@ -183,13 +206,14 @@ export function FormularioCadastro() {
             nome="cidade"
             placeholder="São Paulo"
             required
+            defaultValue={v('cidade')}
             erros={erros?.cidade}
           />
           <CampoSelect
             rotulo="Estado"
             nome="estado"
             required
-            defaultValue=""
+            defaultValue={v('estado')}
             erros={erros?.estado}
           >
             <option value="" disabled>

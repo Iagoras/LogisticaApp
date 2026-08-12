@@ -20,6 +20,11 @@ import { calcularVolumeM3, produtoSchema } from '@/lib/validacoes';
 export type EstadoProduto = {
   erro?: string;
   camposComErro?: Record<string, string[]>;
+  /**
+   * O que foi digitado, devolvido para repopular o formulário quando a
+   * validação falha — errar uma dimensão não deve apagar os outros campos.
+   */
+  valores?: Record<string, string>;
 };
 
 function extrairErros(erro: z.ZodError): Record<string, string[]> {
@@ -29,6 +34,24 @@ function extrairErros(erro: z.ZodError): Record<string, string[]> {
     (campos[campo] ??= []).push(problema.message);
   }
   return campos;
+}
+
+/**
+ * Extrai os valores digitados. Usa o FormData cru porque o Zod não devolve
+ * dados quando a validação falha — e a pessoa deve rever o que escreveu.
+ */
+function extrairValores(formData: FormData): Record<string, string> {
+  const valores: Record<string, string> = {};
+
+  for (const [chave, valor] of formData.entries()) {
+    // Ignora o arquivo de imagem e os campos internos do Next ($ACTION_*).
+    if (typeof valor !== 'string') continue;
+    if (chave.startsWith('$')) continue;
+
+    valores[chave] = valor;
+  }
+
+  return valores;
 }
 
 /**
@@ -75,13 +98,16 @@ export async function criarProduto(
 ): Promise<EstadoProduto> {
   const fornecedorId = await exigirFornecedor();
 
-  const bruto = Object.fromEntries(formData);
-  const analise = produtoSchema.safeParse(bruto);
+  // Capturado antes da validação: acompanha todo retorno de erro.
+  const valores = extrairValores(formData);
+
+  const analise = produtoSchema.safeParse(Object.fromEntries(formData));
 
   if (!analise.success) {
     return {
       erro: 'Confira os campos destacados.',
       camposComErro: extrairErros(analise.error),
+      valores,
     };
   }
 
@@ -94,7 +120,11 @@ export async function criarProduto(
   if (arquivo instanceof File && arquivo.size > 0) {
     const upload = await salvarImagemProduto(arquivo);
     if (!upload.ok) {
-      return { erro: upload.erro, camposComErro: { imagem: [upload.erro] } };
+      return {
+        erro: upload.erro,
+        camposComErro: { imagem: [upload.erro] },
+        valores,
+      };
     }
     imagemUrl = upload.url;
   }
@@ -132,11 +162,12 @@ export async function criarProduto(
       return {
         erro: 'Já existe um produto seu com este SKU.',
         camposComErro: { sku: ['SKU já usado.'] },
+        valores,
       };
     }
 
     console.error('Falha ao criar produto:', erro);
-    return { erro: 'Não foi possível salvar o produto.' };
+    return { erro: 'Não foi possível salvar o produto.', valores };
   }
 
   revalidatePath('/painel/produtos');
@@ -153,8 +184,10 @@ export async function atualizarProduto(
 ): Promise<EstadoProduto> {
   const fornecedorId = await exigirFornecedor();
 
+  const valores = extrairValores(formData);
+
   const produtoId = String(formData.get('id') || '');
-  if (!produtoId) return { erro: 'Produto não informado.' };
+  if (!produtoId) return { erro: 'Produto não informado.', valores };
 
   const atual = await exigirProdutoDoFornecedor(produtoId, fornecedorId);
 
@@ -164,6 +197,7 @@ export async function atualizarProduto(
     return {
       erro: 'Confira os campos destacados.',
       camposComErro: extrairErros(analise.error),
+      valores,
     };
   }
 
@@ -177,7 +211,11 @@ export async function atualizarProduto(
   if (arquivo instanceof File && arquivo.size > 0) {
     const upload = await salvarImagemProduto(arquivo);
     if (!upload.ok) {
-      return { erro: upload.erro, camposComErro: { imagem: [upload.erro] } };
+      return {
+        erro: upload.erro,
+        camposComErro: { imagem: [upload.erro] },
+        valores,
+      };
     }
     imagemAntigaParaApagar = atual.imagemUrl;
     imagemUrl = upload.url;
@@ -216,11 +254,12 @@ export async function atualizarProduto(
       return {
         erro: 'Já existe um produto seu com este SKU.',
         camposComErro: { sku: ['SKU já usado.'] },
+        valores,
       };
     }
 
     console.error('Falha ao atualizar produto:', erro);
-    return { erro: 'Não foi possível salvar as alterações.' };
+    return { erro: 'Não foi possível salvar as alterações.', valores };
   }
 
   // Só apaga a imagem antiga depois que o banco confirmou a troca.
