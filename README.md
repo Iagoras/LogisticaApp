@@ -1,8 +1,8 @@
-# LogisticaApp — Rota Verde
+# LogisticaApp — TCA Move
 
 Aplicação de Logística focada em localização e melhora de rotas comerciais.
 
-Site institucional da Rota Verde, portado do design Claude
+Site institucional da TCA Move, portado do design Claude
 (`Rota Verde - Site.dc.html`) para HTML + CSS + JavaScript puro — sem
 frameworks, sem build, sem dependências.
 
