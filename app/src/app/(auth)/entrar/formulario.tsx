@@ -25,6 +25,7 @@ export function FormularioLogin({ proximo }: { proximo?: string }) {
         </p>
       )}
 
+      {/* Mantém o e-mail digitado quando a senha estava errada. */}
       <Campo
         rotulo="E-mail"
         nome="email"
@@ -32,6 +33,7 @@ export function FormularioLogin({ proximo }: { proximo?: string }) {
         autoComplete="email"
         placeholder="voce@empresa.com.br"
         required
+        defaultValue={estado.valores?.email ?? ''}
         erros={estado.camposComErro?.email}
       />
 

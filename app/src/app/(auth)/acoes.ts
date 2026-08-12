@@ -20,10 +20,22 @@ import { cadastroSchema, loginSchema } from '@/lib/validacoes';
 export type EstadoFormulario = {
   erro?: string;
   camposComErro?: Record<string, string[]>;
+  /**
+   * O que a pessoa digitou, devolvido para repopular o formulário quando
+   * a validação falha. Sem isso um CNPJ errado apagaria os outros 14 campos.
+   */
+  valores?: Record<string, string>;
 };
 
 /** Custo do bcrypt. 12 é o equilíbrio atual entre segurança e latência. */
 const CUSTO_BCRYPT = 12;
+
+/**
+ * Campos que NUNCA voltam para o cliente, mesmo em caso de erro.
+ * Senha em HTML devolvido pelo servidor acaba em cache de proxy e no
+ * histórico do navegador — a pessoa digita de novo, são dois campos.
+ */
+const CAMPOS_SENSIVEIS = new Set(['senha', 'confirmarSenha']);
 
 /** Converte os erros do Zod no formato campo -> mensagens. */
 function extrairErros(erro: z.ZodError): Record<string, string[]> {
@@ -37,6 +49,28 @@ function extrairErros(erro: z.ZodError): Record<string, string[]> {
   return campos;
 }
 
+/**
+ * Extrai os valores digitados para devolver ao formulário.
+ *
+ * Usa o FormData cru, não o resultado do Zod: quando a validação falha o
+ * Zod não devolve dados, e mesmo quando passa ele já transformou (CNPJ sem
+ * máscara, por exemplo) — a pessoa deve rever o que ela mesma escreveu.
+ */
+function extrairValores(formData: FormData): Record<string, string> {
+  const valores: Record<string, string> = {};
+
+  for (const [chave, valor] of formData.entries()) {
+    // Ignora arquivos e os campos internos do Next ($ACTION_*).
+    if (typeof valor !== 'string') continue;
+    if (chave.startsWith('$')) continue;
+    if (CAMPOS_SENSIVEIS.has(chave)) continue;
+
+    valores[chave] = valor;
+  }
+
+  return valores;
+}
+
 /* -------------------------------------------------------------------------
    Cadastro
    ------------------------------------------------------------------------- */
@@ -45,12 +79,17 @@ export async function cadastrarFornecedor(
   _anterior: EstadoFormulario,
   formData: FormData,
 ): Promise<EstadoFormulario> {
+  // Capturado antes de qualquer validação: acompanha todo retorno de erro
+  // para o formulário voltar preenchido.
+  const valores = extrairValores(formData);
+
   const analise = cadastroSchema.safeParse(Object.fromEntries(formData));
 
   if (!analise.success) {
     return {
       erro: 'Confira os campos destacados.',
       camposComErro: extrairErros(analise.error),
+      valores,
     };
   }
 
@@ -68,11 +107,19 @@ export async function cadastrarFornecedor(
   ]);
 
   if (emailEmUso) {
-    return { erro: 'Já existe uma conta com este e-mail.', camposComErro: { email: ['E-mail já cadastrado.'] } };
+    return {
+      erro: 'Já existe uma conta com este e-mail.',
+      camposComErro: { email: ['E-mail já cadastrado.'] },
+      valores,
+    };
   }
 
   if (cnpjEmUso) {
-    return { erro: 'Este CNPJ já está cadastrado.', camposComErro: { cnpj: ['CNPJ já cadastrado.'] } };
+    return {
+      erro: 'Este CNPJ já está cadastrado.',
+      camposComErro: { cnpj: ['CNPJ já cadastrado.'] },
+      valores,
+    };
   }
 
   const senhaHash = await bcrypt.hash(dados.senha, CUSTO_BCRYPT);
@@ -114,11 +161,14 @@ export async function cadastrarFornecedor(
       'code' in erro &&
       erro.code === 'P2002'
     ) {
-      return { erro: 'E-mail ou CNPJ já cadastrado.' };
+      return { erro: 'E-mail ou CNPJ já cadastrado.', valores };
     }
 
     console.error('Falha ao cadastrar fornecedor:', erro);
-    return { erro: 'Não foi possível concluir o cadastro. Tente novamente.' };
+    return {
+      erro: 'Não foi possível concluir o cadastro. Tente novamente.',
+      valores,
+    };
   }
 
   // Loga automaticamente após o cadastro.
@@ -139,12 +189,16 @@ export async function entrar(
   _anterior: EstadoFormulario,
   formData: FormData,
 ): Promise<EstadoFormulario> {
+  // Preserva o e-mail digitado; a senha nunca volta (ver CAMPOS_SENSIVEIS).
+  const valores = extrairValores(formData);
+
   const analise = loginSchema.safeParse(Object.fromEntries(formData));
 
   if (!analise.success) {
     return {
       erro: 'Confira os campos destacados.',
       camposComErro: extrairErros(analise.error),
+      valores,
     };
   }
 
@@ -162,7 +216,7 @@ export async function entrar(
     });
   } catch (erro) {
     if (erro instanceof AuthError) {
-      return { erro: 'E-mail ou senha incorretos.' };
+      return { erro: 'E-mail ou senha incorretos.', valores };
     }
     // `signIn` sinaliza o redirect lançando — precisa subir.
     throw erro;

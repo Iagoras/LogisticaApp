@@ -68,13 +68,17 @@ body {
 
 /* A cor de link vale só na landing. O painel e as telas de autenticação
    usam Tailwind e definem a própria cor — sem este escopo, os <Link> de
-   lá herdariam o verde e sumiriam sobre os botões verdes. */
-.pagina-publica a {
+   lá herdariam o verde e sumiriam sobre os botões verdes.
+
+   `:not(.btn)` é essencial: vários botões da landing são <Link>, e sem a
+   exclusão esta regra (especificidade 0-2-0) venceria o `color` das
+   variantes .btn--* (0-1-0) — o texto ficava verde sobre fundo verde. */
+.pagina-publica a:not(.btn) {
   color: var(--verde-agua);
   transition: color 0.2s ease;
 }
 
-.pagina-publica a:hover {
+.pagina-publica a:not(.btn):hover {
   color: var(--verde-agua-escuro);
 }
 
@@ -258,6 +262,10 @@ img {
    Botões
    -------------------------------------------------------------------------- */
 
+/* Os seletores das variantes usam `.btn.btn--x` (especificidade 0-2-0) para
+   ficarem imunes a regras genéricas de link como `.pagina-publica a`.
+   Vários botões são <Link>, e antes o texto herdava o verde do link,
+   ficando verde sobre verde. */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -269,21 +277,24 @@ img {
   transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
-.btn--pilula {
+/* O fundo é um meio-termo entre --verde-agua e --verde-agua-escuro:
+   o tom original (#15A182) dava contraste 3.25 com texto branco, abaixo
+   dos 4.5 do WCAG AA. Este dá 4.63 e mantém a cor da marca reconhecível. */
+.btn.btn--pilula {
   padding: 11px 22px;
   border-radius: 999px;
-  background: var(--verde-agua);
+  background: #118468;
   color: var(--branco);
   font-size: 15px;
   box-shadow: 0 8px 20px -10px rgba(21, 161, 130, 0.9);
 }
 
-.btn--pilula:hover {
+.btn.btn--pilula:hover {
   background: var(--verde-agua-escuro);
   color: var(--branco);
 }
 
-.btn--escuro {
+.btn.btn--escuro {
   padding: 16px 30px;
   border-radius: 14px;
   background: var(--escuro);
@@ -291,12 +302,14 @@ img {
   font-size: 16px;
 }
 
-.btn--escuro:hover {
-  background: var(--verde-agua);
+/* O tom escuro em vez de --verde-agua: branco sobre #15A182 dá contraste
+   3.25, abaixo dos 4.5 exigidos pelo WCAG AA. Com #0E7360 sobe para 5.77. */
+.btn.btn--escuro:hover {
+  background: var(--verde-agua-escuro);
   color: var(--branco);
 }
 
-.btn--claro {
+.btn.btn--claro {
   padding: 16px 30px;
   border-radius: 14px;
   background: var(--branco);
@@ -305,12 +318,14 @@ img {
   font-size: 16px;
 }
 
-.btn--claro:hover {
+/* Mesmo motivo do --escuro:hover: #15A182 sobre branco dá 3.25. A borda
+   pode continuar no tom claro — ela não precisa de contraste de texto. */
+.btn.btn--claro:hover {
   border-color: var(--verde-agua);
-  color: var(--verde-agua);
+  color: var(--verde-agua-escuro);
 }
 
-.btn--limao {
+.btn.btn--limao {
   padding: 16px 26px;
   border-radius: 14px;
   background: var(--verde-claro);
@@ -319,11 +334,11 @@ img {
   font-weight: 700;
 }
 
-.btn--limao:hover {
+.btn.btn--limao:hover {
   background: var(--verde-medio);
 }
 
-.btn--contraste {
+.btn.btn--contraste {
   padding: 15px 28px;
   border-radius: 14px;
   background: var(--escuro-puro);
@@ -332,7 +347,7 @@ img {
   white-space: nowrap;
 }
 
-.btn--contraste:hover {
+.btn.btn--contraste:hover {
   background: var(--escuro);
   color: var(--verde-claro);
 }

@@ -12,8 +12,11 @@ const r = await c.query(`
   DELETE FROM usuarios
   WHERE email LIKE '%@teste.local'
      OR email LIKE '%@diagnostico.local'
+     OR email LIKE '%@preserva.local'
      OR email LIKE '%@teste.com.br'
      OR email LIKE '%@exemplo.local'
+     OR email LIKE '%@exemplo.com.br'
+     OR email LIKE '%@x.com.br'
 `);
 console.log('usuários de teste removidos:', r.rowCount);
 
