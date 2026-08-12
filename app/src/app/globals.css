@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+/* Estilos da landing pública, portados do site estático original.
+   Usam classes próprias (.hero, .servico, …) e não conflitam com o
+   Tailwind, que é usado nas telas de autenticação e no painel. */
+@import "./landing.css";
+
+/* O tema claro é o único: a identidade da marca é fixa. */
+:root {
+  --background: #F5F7F3;
+  --foreground: #0B231D;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+}

@@ -1,0 +1,161 @@
+// Schema do TCA Move — plataforma de fornecedores e estoque.
+//
+// Prisma 7: o generator usa o provider "prisma-client" e exige `output`.
+// O client gerado fica em src/generated/prisma (fora do node_modules).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+// Em Prisma 7 a URL de conexão vive em prisma.config.ts, não aqui.
+datasource db {
+  provider = "postgresql"
+}
+
+/// Papel do usuário na plataforma.
+enum Papel {
+  FORNECEDOR
+  ADMIN
+}
+
+/// Conta de acesso. Um usuário FORNECEDOR tem exatamente um Fornecedor.
+model User {
+  id            String    @id @default(cuid())
+  nome          String
+  email         String    @unique
+  /// Hash bcrypt. Nulo quando a conta vier de um provedor OAuth no futuro.
+  senhaHash     String?   @map("senha_hash")
+  papel         Papel     @default(FORNECEDOR)
+  emailVerified DateTime? @map("email_verified")
+  image         String?
+  criadoEm      DateTime  @default(now()) @map("criado_em")
+  atualizadoEm  DateTime  @updatedAt @map("atualizado_em")
+
+  fornecedor Fornecedor?
+  accounts   Account[]
+  sessions   Session[]
+
+  @@map("usuarios")
+}
+
+/// Empresa fornecedora. O CNPJ é guardado só com dígitos (14 caracteres).
+model Fornecedor {
+  id           String   @id @default(cuid())
+  usuarioId    String   @unique @map("usuario_id")
+  razaoSocial  String   @map("razao_social")
+  nomeFantasia String?  @map("nome_fantasia")
+  /// Somente dígitos, sem máscara. Único na plataforma.
+  cnpj         String   @unique @db.VarChar(14)
+  telefone     String?
+  ativo        Boolean  @default(true)
+  criadoEm     DateTime @default(now()) @map("criado_em")
+  atualizadoEm DateTime @updatedAt @map("atualizado_em")
+
+  usuario  User      @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  endereco Endereco?
+  produtos Produto[]
+
+  @@index([cnpj])
+  @@map("fornecedores")
+}
+
+/// Endereço do fornecedor (1:1). Separado para permitir múltiplos endereços depois.
+model Endereco {
+  id           String   @id @default(cuid())
+  fornecedorId String   @unique @map("fornecedor_id")
+  cep          String   @db.VarChar(8)
+  logradouro   String
+  numero       String
+  complemento  String?
+  bairro       String
+  cidade       String
+  /// Sigla da UF, 2 letras.
+  estado       String   @db.VarChar(2)
+  criadoEm     DateTime @default(now()) @map("criado_em")
+  atualizadoEm DateTime @updatedAt @map("atualizado_em")
+
+  fornecedor Fornecedor @relation(fields: [fornecedorId], references: [id], onDelete: Cascade)
+
+  @@map("enderecos")
+}
+
+/// Item de estoque cadastrado pelo fornecedor.
+///
+/// Medidas: peso em quilos, dimensões em centímetros. `volumeM3` é derivado
+/// das dimensões e gravado para permitir ordenação e soma direto no banco.
+/// Decimal em vez de Float — evita erro de arredondamento em cálculo de frete.
+model Produto {
+  id           String   @id @default(cuid())
+  fornecedorId String   @map("fornecedor_id")
+  nome         String
+  descricao    String?
+  /// SKU interno do fornecedor. Único por fornecedor, não globalmente.
+  sku          String?
+  imagemUrl    String?  @map("imagem_url")
+
+  /// Peso em quilogramas.
+  pesoKg       Decimal  @map("peso_kg") @db.Decimal(10, 3)
+  /// Altura em centímetros.
+  alturaCm     Decimal  @map("altura_cm") @db.Decimal(10, 2)
+  /// Largura em centímetros.
+  larguraCm    Decimal  @map("largura_cm") @db.Decimal(10, 2)
+  /// Comprimento em centímetros.
+  comprimentoCm Decimal @map("comprimento_cm") @db.Decimal(10, 2)
+  /// Volume em metros cúbicos, calculado a partir das dimensões.
+  volumeM3     Decimal  @map("volume_m3") @db.Decimal(12, 6)
+
+  quantidade   Int      @default(0)
+  ativo        Boolean  @default(true)
+  criadoEm     DateTime @default(now()) @map("criado_em")
+  atualizadoEm DateTime @updatedAt @map("atualizado_em")
+
+  fornecedor Fornecedor @relation(fields: [fornecedorId], references: [id], onDelete: Cascade)
+
+  @@unique([fornecedorId, sku])
+  @@index([fornecedorId])
+  @@map("produtos")
+}
+
+// ---------------------------------------------------------------------------
+// Tabelas exigidas pelo adapter do Auth.js. Mantidas com os nomes de coluna
+// que o adapter espera — não renomear.
+// ---------------------------------------------------------------------------
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+  @@map("contas_oauth")
+}
+
+model Session {
+  sessionToken String   @id
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessoes")
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+  @@map("tokens_verificacao")
+}
