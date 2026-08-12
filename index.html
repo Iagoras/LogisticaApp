@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rota Verde · Operador logístico integrado</title>
+  <meta name="description" content="Transporte rodoviário, armazenagem e last mile em uma só operação. Visibilidade em tempo real do coleta ao destinatário." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/style.css" />
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+
+  <!-- ====================== Cabeçalho ====================== -->
+  <header class="cabecalho">
+    <a href="#topo" class="marca">
+      <span class="marca__icone" aria-hidden="true">R</span>
+      <span class="marca__nome">Rota Verde</span>
+    </a>
+
+    <nav class="nav" id="nav-principal" aria-label="Navegação principal">
+      <a href="#solucoes">Soluções</a>
+      <a href="#rastreio">Rastreio</a>
+      <a href="#cobertura">Cobertura</a>
+      <a href="#processo">Como funciona</a>
+      <!-- Só aparece em telas estreitas, onde o CTA sai do cabeçalho -->
+      <a href="#contato" class="btn btn--pilula nav__cta">Solicitar cotação</a>
+    </nav>
+
+    <div class="cabecalho__acoes">
+      <a href="#rastreio" class="link-entrar">Entrar</a>
+      <a href="#contato" class="btn btn--pilula">Solicitar cotação</a>
+      <button
+        type="button"
+        class="menu-toggle"
+        id="menu-toggle"
+        aria-label="Abrir menu"
+        aria-expanded="false"
+        aria-controls="nav-principal"
+      >
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <main id="topo">
+
+    <!-- ====================== Hero ====================== -->
+    <section class="hero">
+      <div class="hero__texto">
+        <div class="selo">
+          <span class="selo__tag">NOVO</span>
+          <span class="selo__texto">Roteirização com IA em 22 estados</span>
+        </div>
+
+        <h1 class="hero__titulo">
+          Sua carga em<br />
+          <span class="gradiente-texto">movimento constante</span>
+        </h1>
+
+        <p class="hero__descricao">
+          Transporte rodoviário, armazenagem e last mile em uma só operação.
+          Visibilidade em tempo real do coleta ao destinatário — sem planilha,
+          sem telefonema.
+        </p>
+
+        <div class="hero__acoes">
+          <a href="#contato" class="btn btn--escuro">Falar com um especialista</a>
+          <a href="#rastreio" class="btn btn--claro">Rastrear pedido</a>
+        </div>
+
+        <!-- Preenchido por interface.js com contagem animada -->
+        <div class="hero__numeros" id="hero-numeros"></div>
+      </div>
+
+      <div class="hero__visual">
+        <div class="hero__imagem">
+          <!-- Troque por <img src="assets/frota.jpg" alt="Frota na estrada" /> -->
+          <svg viewBox="0 0 600 560" width="100%" height="100%" role="img" aria-label="Foto da frota">
+            <rect width="600" height="560" fill="#0B231D" />
+            <path d="M0 400 L600 340 L600 560 L0 560 Z" fill="#122F27" />
+            <circle cx="470" cy="120" r="58" fill="#15A182" opacity="0.25" />
+            <rect x="120" y="300" width="230" height="90" rx="12" fill="#1B3D33" />
+            <rect x="350" y="325" width="120" height="65" rx="10" fill="#15A182" opacity="0.5" />
+            <circle cx="185" cy="400" r="26" fill="#0A1C17" />
+            <circle cx="400" cy="400" r="26" fill="#0A1C17" />
+            <text x="300" y="500" fill="#3A5A50" font-family="Manrope, sans-serif" font-size="17" text-anchor="middle">
+              Foto da frota / caminhão na estrada
+            </text>
+          </svg>
+        </div>
+
+        <!-- Cartão sincronizado com o painel de rastreio -->
+        <aside class="cartao-carga" aria-live="polite">
+          <div class="cartao-carga__topo">
+            <span class="cartao-carga__codigo" id="cartao-codigo">CARGA #RV-88421</span>
+            <span class="pulso" aria-hidden="true"></span>
+          </div>
+          <div class="cartao-carga__rota" id="cartao-rota">Campinas → Curitiba</div>
+          <div class="barra">
+            <div class="barra__preenchimento" id="cartao-barra"></div>
+          </div>
+          <div class="cartao-carga__rodape">
+            <span id="cartao-percentual">72% do trajeto</span>
+            <span class="cartao-carga__eta" id="cartao-eta">Chega hoje, 18h40</span>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ====================== Clientes ====================== -->
+    <div class="faixa-clientes revelar">
+      <div class="faixa-clientes__interno">
+        <span class="faixa-clientes__rotulo">OPERAMOS PARA</span>
+        <!-- Preenchido por secoes.js -->
+        <div class="faixa-clientes__logos" id="lista-clientes" style="display:contents"></div>
+      </div>
+    </div>
+
+    <!-- ====================== Soluções ====================== -->
+    <section class="solucoes revelar" id="solucoes">
+      <div class="solucoes__cabecalho">
+        <div class="solucoes__intro">
+          <span class="olho">SOLUÇÕES</span>
+          <h2 class="secao__titulo">Uma malha logística inteira sob um contrato só</h2>
+        </div>
+        <p class="solucoes__apoio">
+          Integramos coleta, armazenagem e distribuição com SLA único e um painel
+          de controle compartilhado com o seu time.
+        </p>
+      </div>
+      <!-- Preenchido por secoes.js -->
+      <div class="grade-servicos" id="grade-servicos"></div>
+    </section>
+
+    <!-- ====================== Rastreio ====================== -->
+    <section class="rastreio" id="rastreio">
+      <div class="rastreio__interno">
+        <div class="rastreio__texto">
+          <span class="rastreio__olho">RASTREIO EM TEMPO REAL</span>
+          <h2 class="rastreio__titulo">Onde está a minha carga?</h2>
+          <p class="rastreio__descricao">
+            Telemetria a cada 30 segundos, temperatura de câmara fria e
+            comprovante digital de entrega no mesmo lugar.
+          </p>
+
+          <form class="rastreio__form" id="form-rastreio" novalidate>
+            <label class="sr-only" for="campo-rastreio">Código de rastreio</label>
+            <input
+              class="campo-escuro"
+              id="campo-rastreio"
+              name="codigo"
+              type="text"
+              autocomplete="off"
+              placeholder="Digite o código, ex: RV-88421"
+            />
+            <button type="submit" class="btn btn--limao" id="botao-rastreio">Rastrear</button>
+          </form>
+
+          <span class="rastreio__dica" id="dica-rastreio" role="status" aria-live="polite"></span>
+        </div>
+
+        <div class="painel" id="painel-rastreio">
+          <div class="painel__topo">
+            <div class="painel__identificacao">
+              <span class="painel__codigo" id="painel-codigo">—</span>
+              <span class="painel__rota" id="painel-rota">—</span>
+            </div>
+            <span class="painel__status" id="painel-status">—</span>
+          </div>
+          <!-- Preenchido por rastreio.js -->
+          <ol class="linha-tempo" id="linha-tempo"></ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================== Cobertura ====================== -->
+    <section class="cobertura revelar" id="cobertura">
+      <div class="cobertura__imagem">
+        <!-- Troque por <img src="assets/cobertura.jpg" alt="Mapa de cobertura" /> -->
+        <svg viewBox="0 0 600 520" width="100%" height="100%" role="img" aria-label="Mapa de cobertura">
+          <rect width="600" height="520" fill="#DCE7D6" />
+          <path d="M300 60 L430 180 L400 380 L220 400 L160 220 Z" fill="#C2DBB6" />
+          <circle cx="300" cy="230" r="9" fill="#15A182" />
+          <circle cx="380" cy="310" r="7" fill="#53B568" />
+          <circle cx="230" cy="300" r="7" fill="#53B568" />
+          <path d="M300 230 L380 310 M300 230 L230 300" stroke="#15A182" stroke-width="2" stroke-dasharray="6 6" />
+          <text x="300" y="460" fill="#7B8F77" font-family="Manrope, sans-serif" font-size="17" text-anchor="middle">
+            Mapa de cobertura ou centro de distribuição
+          </text>
+        </svg>
+      </div>
+
+      <div class="cobertura__texto">
+        <span class="olho">COBERTURA</span>
+        <h2 class="cobertura__titulo">Do porto de Santos ao interior do Pará</h2>
+        <p class="cobertura__descricao">
+          Nove centros de distribuição próprios e uma malha de parceiros
+          homologados garantem coleta em até 4 horas nas capitais.
+        </p>
+        <!-- Preenchido por secoes.js -->
+        <div class="grade-cobertura" id="grade-cobertura"></div>
+      </div>
+    </section>
+
+    <!-- ====================== Processo ====================== -->
+    <section class="processo revelar" id="processo">
+      <div class="processo__cartao">
+        <div class="processo__cabecalho">
+          <h2 class="processo__titulo">
+            Quatro passos entre o pedido e o comprovante assinado
+          </h2>
+          <a href="#contato" class="btn btn--contraste">Começar agora</a>
+        </div>
+        <!-- Preenchido por secoes.js -->
+        <div class="grade-processo" id="grade-processo"></div>
+      </div>
+    </section>
+
+    <!-- ====================== Depoimento + contato ====================== -->
+    <section class="fechamento revelar">
+      <figure class="depoimento">
+        <span class="depoimento__aspas" aria-hidden="true">&rdquo;</span>
+        <blockquote class="depoimento__texto">
+          Trocamos quatro transportadoras por uma. O custo por volume caiu 19% e
+          finalmente paramos de descobrir atraso pelo cliente.
+        </blockquote>
+        <figcaption class="depoimento__autor">
+          <div class="depoimento__avatar">
+            <svg viewBox="0 0 48 48" width="100%" height="100%" role="img" aria-label="Foto de Marina Sacchetto">
+              <rect width="48" height="48" fill="#E7F4DE" />
+              <circle cx="24" cy="19" r="8" fill="#B7D6A2" />
+              <path d="M8 48c0-9 7-15 16-15s16 6 16 15z" fill="#B7D6A2" />
+            </svg>
+          </div>
+          <div>
+            <span class="depoimento__nome">Marina Sacchetto</span><br />
+            <span class="depoimento__cargo">Diretora de Supply Chain, Verdemar Alimentos</span>
+          </div>
+        </figcaption>
+      </figure>
+
+      <div class="contato" id="contato">
+        <h3 class="contato__titulo">Receba uma cotação em 24h</h3>
+        <p class="contato__texto">
+          Conte o volume mensal e as rotas críticas. Devolvemos um desenho de
+          malha com custo por entrega.
+        </p>
+        <form class="contato__form" id="form-contato" novalidate>
+          <label class="sr-only" for="campo-email">E-mail corporativo</label>
+          <input
+            class="campo-escuro"
+            id="campo-email"
+            name="email"
+            type="email"
+            autocomplete="email"
+            placeholder="E-mail corporativo"
+          />
+          <button type="submit" class="btn btn--limao">Solicitar cotação</button>
+        </form>
+        <span class="contato__aviso" id="aviso-contato" role="status" aria-live="polite"></span>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ====================== Rodapé ====================== -->
+  <footer class="rodape">
+    <div class="rodape__interno">
+      <div class="rodape__marca">
+        <div class="rodape__logo">
+          <span class="rodape__logo-icone" aria-hidden="true"></span>
+          <span class="rodape__logo-nome">Rota Verde</span>
+        </div>
+        <p class="rodape__legal">
+          Operador logístico integrado. ANTT 4432198 · CNPJ 12.345.678/0001-90
+        </p>
+      </div>
+
+      <div class="rodape__colunas">
+        <div class="rodape__coluna">
+          <span class="rodape__titulo">SERVIÇOS</span>
+          <a href="#solucoes">Carga fracionada</a>
+          <a href="#solucoes">Armazenagem</a>
+          <a href="#solucoes">Last mile</a>
+        </div>
+        <div class="rodape__coluna">
+          <span class="rodape__titulo">EMPRESA</span>
+          <a href="#cobertura">Cobertura</a>
+          <a href="#processo">Como funciona</a>
+          <a href="#contato">Contato</a>
+        </div>
+        <div class="rodape__coluna">
+          <span class="rodape__titulo">FALE CONOSCO</span>
+          <span>0800 941 2200</span>
+          <span>comercial@rotaverde.com.br</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="rodape__base">
+      <span>© <span id="ano-atual">2026</span> Rota Verde Logística</span>
+      <span>Política de privacidade · Termos</span>
+    </div>
+  </footer>
+
+</body>
+</html>
